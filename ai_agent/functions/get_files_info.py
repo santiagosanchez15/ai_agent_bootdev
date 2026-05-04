@@ -1,6 +1,6 @@
 import os 
 
-def get_files_info(working_directory: str, directory='.'):
+def get_files_info(working_directory: str, directory='.') -> str:
     '''Returns files contained in a path through the agent'''
 
     absolute_path = os.path.abspath(working_directory)
