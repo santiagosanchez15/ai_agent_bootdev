@@ -23,15 +23,15 @@ def main():
     messages = [types.Content(role="user", parts=[types.Part(text=args.user_prompt)])]
 
     #gemini response and different data shown outside
-    gemini = client.models.generate_content(model="gemini-2.5-flash", contents=messages)
+    gemini = client.models.generate_content(model="gemini-2.5-flash", contents=messages) # get prompt from the messages list
     
     if gemini.usage_metadata.candidates_token_count is None: raise RuntimeError("no resposnse given by model") #get number of tokens by given models response
-    if args.verbose is True: 
+    if args.verbose is True: # handles edge case if verbose is passed to the cli
         print(f"User prompt: {messages[0].parts[0].text}")
         print(f"Prompt tokens: {gemini.usage_metadata.prompt_token_count}") # get number of token from given question
         print(f"Response tokens: {gemini.usage_metadata.candidates_token_count}")
 
-    print(f"Response:\n {gemini.text}")
+    print(f"Response:\n {gemini.text}") # outputs agents response
     
 if __name__ == "__main__":
     main()
