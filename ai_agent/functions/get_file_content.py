@@ -1,5 +1,21 @@
 import os
 from config import MAX_CHARACTERS
+from google import genai
+from google.genai import types
+
+schema_get_files_content = types.FunctionDeclaration(
+    name="get_file_content",
+    description="returns content of file with maximum number of characters to be returned, if the limit is exceeded then a message is added at the end of string, checks path and existance of it",
+    parameters=types.Schema(
+        type=types.Type.OBJECT,
+        properties={
+            "file_path": types.Schema(
+                type=types.Type.STRING,
+                description="File path to where we the content of the file can be retrieved, relative to the working directory",
+            ),
+        },
+    ),
+)
 
 def get_file_content(working_directory: str, file_path: str):
     

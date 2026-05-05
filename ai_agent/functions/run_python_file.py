@@ -1,5 +1,25 @@
 import os
 import subprocess
+from google import genai
+from google.genai import types
+
+schema_run_python_file = types.FunctionDeclaration(
+    name="run_python_file",
+    description="function to run any python code from given document all of this performed by given arguments",
+    parameters=types.Schema(
+        type=types.Type.OBJECT,
+        properties={
+            "file_path": types.Schema(
+                type=types.Type.STRING,
+                description="File path to where we the content of the file can be retrieved, relative to the working directory",
+            ),
+            "args": types.Schema(
+                type=types.Type.STRING,
+                description='By defaul given value is 0, but this is used to pass extra argument to given function, in case it more than usual arguments'
+            )
+        },
+    ),
+)
 
 def run_python_file(working_directory, file_path, args=None):
     '''Let the llm run/code python files'''
