@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 import argparse
+from prompts import system_prompt
 
 
 load_dotenv()
@@ -23,7 +24,7 @@ def main():
     messages = [types.Content(role="user", parts=[types.Part(text=args.user_prompt)])]
 
     #gemini response and different data shown outside
-    gemini = client.models.generate_content(model="gemini-2.5-flash", contents=messages) # get prompt from the messages list
+    gemini = client.models.generate_content(model="gemini-2.5-flash", contents=messages, config=types.GenerateContentConfig(system_instruction=system_prompt),) # get prompt from the messages list
     
     if gemini.usage_metadata.candidates_token_count is None: raise RuntimeError("no resposnse given by model") #get number of tokens by given models response
     if args.verbose is True: # handles edge case if verbose is passed to the cli
