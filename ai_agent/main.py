@@ -4,7 +4,7 @@ from google import genai
 from google.genai import types
 import argparse
 from prompts import system_prompt
-from call_function import available_functions
+from call_function import available_functions, call_function
 
 
 load_dotenv()
@@ -35,7 +35,19 @@ def main():
     
     if  gemini.function_calls:
         for function in gemini.function_calls:
-            print(f"Calling function: {function.name}({function.args})")
+            function_call_result = call_function(function, args.verbose)
+
+            #handle edge cases where correct output was not fully passed to the function_call_result
+            if not function_call_result.parts: raise Exception("Non-empty list found at the function_call.parts") #list is empty raise error
+            if not function_call_result.parts[0].function_response: raise Exception("Function call part[0] function response is empty") #list empty reaise error
+            if not function_call_result.parts[0].function_response.response: raise Exception("Function call not found in function_response.response therefore empty") # fucntion not found in response raise error
+            function_result_list = []
+            function_result_list.append(function_call_result.parts[0])
+
+            if args.verbose: print(f"-> {function_call_result.parts[0].function_response.response}")
+            else: print(function_call_result.parts[0].function_response.response["result"])
+
+            # print(f"Calling function: {function.name}({function.args})")
     else: print(f"Response:\n {gemini.text}") # outputs agents response
     
 if __name__ == "__main__":
