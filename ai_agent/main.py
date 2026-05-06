@@ -25,30 +25,42 @@ def main():
     messages = [types.Content(role="user", parts=[types.Part(text=args.user_prompt)])]
 
     #gemini response and different data shown outside
-    gemini = client.models.generate_content(model="gemini-2.5-flash", contents=messages , config=types.GenerateContentConfig(tools=[available_functions],system_instruction=system_prompt),) # get prompt from the messages list
+    for _ in range(20):
+
+        gemini = client.models.generate_content(model="gemini-2.5-flash", contents=messages , config=types.GenerateContentConfig(tools=[available_functions],system_instruction=system_prompt),) # get prompt from the messages list
     
-    if gemini.usage_metadata.candidates_token_count is None: raise RuntimeError("no resposnse given by model") #get number of tokens by given models response
-    if args.verbose is True: # handles edge case if verbose is passed to the cli
-        print(f"User prompt: {messages[0].parts[0].text}")
-        print(f"Prompt tokens: {gemini.usage_metadata.prompt_token_count}") # get number of token from given question
-        print(f"Response tokens: {gemini.usage_metadata.candidates_token_count}")
-    
-    if  gemini.function_calls:
-        for function in gemini.function_calls:
-            function_call_result = call_function(function, args.verbose)
+        if gemini.candidates: messages += [candidate.content for candidate in gemini.candidates]
 
-            #handle edge cases where correct output was not fully passed to the function_call_result
-            if not function_call_result.parts: raise Exception("Non-empty list found at the function_call.parts") #list is empty raise error
-            if not function_call_result.parts[0].function_response: raise Exception("Function call part[0] function response is empty") #list empty reaise error
-            if not function_call_result.parts[0].function_response.response: raise Exception("Function call not found in function_response.response therefore empty") # fucntion not found in response raise error
-            function_result_list = []
-            function_result_list.append(function_call_result.parts[0])
+        if gemini.usage_metadata.candidates_token_count is None: raise RuntimeError("no resposnse given by model") #get number of tokens by given models response
+        # if args.verbose is True: # handles edge case if verbose is passed to the cli
+        #     print(f"User prompt: {messages[0].parts[0].text}")
+        #     print(f"Prompt tokens: {gemini.usage_metadata.prompt_token_count}") # get number of token from given question
+        #     print(f"Response tokens: {gemini.usage_metadata.candidates_token_count}")
+        
+        function_responses = []
+        if  gemini.function_calls:
+            for function in gemini.function_calls:
+                function_call_result = call_function(function, args.verbose)
 
-            if args.verbose: print(f"-> {function_call_result.parts[0].function_response.response}")
-            else: print(function_call_result.parts[0].function_response.response["result"])
+                #handle edge cases where correct output was not fully passed to the function_call_result
+                if not function_call_result.parts: raise Exception("Non-empty list found at the function_call.parts") #list is empty raise error
+                if not function_call_result.parts[0].function_response: raise Exception("Function call part[0] function response is empty") #list empty reaise error
+                if not function_call_result.parts[0].function_response.response: raise Exception("Function call not found in function_response.response therefore empty") # fucntion not found in response raise error
+                
+                function_responses.append(function_call_result.parts[0])
 
-            # print(f"Calling function: {function.name}({function.args})")
-    else: print(f"Response:\n {gemini.text}") # outputs agents response
+                if args.verbose: print(f"-> {function_call_result.parts[0].function_response.response}")
+                else: print(function_call_result.parts[0].function_response.response["result"])
+
+            messages.append(types.Content(role="user", parts=function_responses))
+        else: 
+            print(f"Response:\n {gemini.text}") # outputs agents response
+            break 
+    else:
+        print("A final message was not able to reach therefore exit 1, maybe more iterations")
+        return 1
+        
     
 if __name__ == "__main__":
+    
     main()
