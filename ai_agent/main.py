@@ -10,7 +10,7 @@ from call_function import available_functions, call_function
 load_dotenv()
 api_key = os.environ.get("GEMINI_API_KEY")
 if api_key is None: raise RuntimeError("API key not foound")
-client = genai.Client(api_key=api_key)
+client = genai.Client(api_key=api_key, vertexai=True)
 
 
 def main():
